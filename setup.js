@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const rimraf = require('rimraf');
+var net = require('net');
 
 const ADMIN_USER = {
     username: "admin",
@@ -9,8 +10,12 @@ const ADMIN_USER = {
     email: "admin@whatever.com"
 }
 
+var client = new net.Socket();
+
 // Configuration settings with defaults
 const CONFIG = {
+    EVENT_LISTENER_ADDRESS: process.env.EVENT_LISTENER_ADDRESS || "127.0.0.1",
+    EVENT_LISTENER_PORT: process.env.EVENT_LISTENER_PORT || 5000,
     BASE_URL: process.env.PPTR_CONFLUENCE_BASE_URL || "http://localhost:8090/confluence",
     // If no license is provided, then this 3 hours timebomb license for any Atlassian Server product is used
     CONFLUENCE_LICENSE: process.env.PPTR_CONFLUENCE_LICENSE || `AAACLg0ODAoPeNqNVEtv4jAQvudXRNpbpUSEx6FIOQBxW3ZZiCB0V1WllXEG8DbYke3A8u/XdUgVQ
@@ -29,6 +34,11 @@ SJ+SA7YG9zthbLxRoBBEwIURQr5Zy1B8PonepyLz3UhL7kMVEs=X02q6`,
     DB_JDBC_URL: process.env.PPTR_JDBC_URL || "jdbc:postgresql://postgres:5432/confluence",
     HEADLESS: process.env.PPTR_HEADLESS || false
 };
+
+var client = new net.Socket();
+client.connect(CONFIG.EVENT_LISTENER_PORT, CONFIG.EVENT_LISTENER_ADDRESS, function() {
+	console.log('Connected');
+});
 
 // Async timeout
 const delay = (ms) => {
@@ -97,6 +107,7 @@ const delay = (ms) => {
         await browser.close();
     } finally {
         await browser.close();
+        await client.wite('finish_setup')
     }
 })();
 
